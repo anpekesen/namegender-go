@@ -1,3 +1,3 @@
-module github.com/genderscope/genderscope-go
+module github.com/anpekesen/genderscope-go
 
 go 1.21
