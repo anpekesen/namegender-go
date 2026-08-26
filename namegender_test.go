@@ -1,4 +1,4 @@
-package genderscope
+package namegender
 
 import (
 	"context"

@@ -1,10 +1,10 @@
-# GenderScope Go
+# NameGender Go
 
 ```sh
-go get github.com/genderscope/genderscope-go
+go get github.com/anpekesen/namegender-go
 ```
 
 ```go
-client := genderscope.New(os.Getenv("GENDERSCOPE_API_KEY"))
-result, err := client.Name(ctx, "Ayşe", genderscope.Options{Country: "TR"})
+client := namegender.New(os.Getenv("NAMEGENDER_API_KEY"))
+result, err := client.Name(ctx, "Ayşe", namegender.Options{Country: "TR"})
 ```

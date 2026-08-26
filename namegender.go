@@ -1,4 +1,4 @@
-package genderscope
+package namegender
 
 import (
 	"bytes"
@@ -41,10 +41,10 @@ type APIError struct {
 	Body   []byte
 }
 
-func (e *APIError) Error() string { return fmt.Sprintf("genderscope: HTTP %d: %s", e.Status, e.Body) }
+func (e *APIError) Error() string { return fmt.Sprintf("namegender: HTTP %d: %s", e.Status, e.Body) }
 
 func New(apiKey string) *Client {
-	return &Client{APIKey: apiKey, BaseURL: "https://genderscope.io/api/v1", HTTPClient: http.DefaultClient}
+	return &Client{APIKey: apiKey, BaseURL: "https://namegender.com/api/v1", HTTPClient: http.DefaultClient}
 }
 func (c *Client) Name(ctx context.Context, name string, o Options) (*Result, error) {
 	return c.single(ctx, "/gender", "name", name, o)
@@ -83,7 +83,7 @@ func applyOptions(p map[string]any, o Options) {
 }
 func (c *Client) request(ctx context.Context, path string, payload any, target any) error {
 	if c.APIKey == "" {
-		return fmt.Errorf("genderscope: API key is required")
+		return fmt.Errorf("namegender: API key is required")
 	}
 	body, err := json.Marshal(payload)
 	if err != nil {

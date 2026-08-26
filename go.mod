@@ -1,3 +1,3 @@
-module github.com/anpekesen/genderscope-go
+module github.com/anpekesen/namegender-go
 
 go 1.21
