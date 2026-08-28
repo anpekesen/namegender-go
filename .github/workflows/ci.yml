@@ -1,0 +1,22 @@
+# Go'nun ayrı bir yayın adımı YOK: modül proxy'si etiketi kendisi görür.
+# Bu iş akışı yalnızca etiketlenen şeyin derlendiğini ve testlerin geçtiğini
+# kanıtlar — çünkü etiket atıldıktan sonra proxy onu önbelleğe alır ve
+# geri çekmek pratikte mümkün değildir.
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - run: go vet ./...
+      - run: go test ./...
