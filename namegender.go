@@ -36,6 +36,44 @@ type BulkResult struct {
 	Results []Result       `json:"results"`
 	Summary map[string]any `json:"summary"`
 }
+
+// CountriesOptions configures Countries. Limit caps the number of entries in
+// Registrations (1-100); zero leaves the server default of 25.
+type CountriesOptions struct {
+	Limit int `json:"limit,omitempty"`
+}
+
+// CountriesResult is the country distribution of a name. It is not a
+// country-of-origin or ethnicity inference: Registrations is counted volume,
+// comparable only among countries that publish counted birth statistics, and
+// AttestedIn is presence with no weight attached. Show Basis.Note next to any
+// percentage.
+type CountriesResult struct {
+	Status        bool                  `json:"status"`
+	Name          string                `json:"name"`
+	Basis         CountriesBasis        `json:"basis"`
+	Registrations []CountryRegistration `json:"registrations"`
+	AttestedIn    []string              `json:"attested_in"`
+}
+
+// CountriesBasis states what the numbers in a CountriesResult rest on.
+type CountriesBasis struct {
+	CountedSources    []string `json:"counted_sources"`
+	CountedCountries  int      `json:"counted_countries"`
+	AttestedCountries int      `json:"attested_countries"`
+	Note              string   `json:"note"`
+}
+
+// CountryRegistration is one counted country. Share is a percentage of the
+// registrations in this list alone.
+type CountryRegistration struct {
+	Country     string  `json:"country"`
+	Count       int     `json:"count"`
+	Share       float64 `json:"share"`
+	Gender      *string `json:"gender"`
+	Probability int     `json:"probability"`
+	Source      string  `json:"source"`
+}
 type APIError struct {
 	Status int
 	Body   []byte
@@ -66,6 +104,14 @@ func (c *Client) Bulk(ctx context.Context, names []string, o Options) (*BulkResu
 	applyOptions(p, o)
 	var result BulkResult
 	return &result, c.request(ctx, "/gender/bulk", p, &result)
+}
+func (c *Client) Countries(ctx context.Context, name string, o CountriesOptions) (*CountriesResult, error) {
+	p := map[string]any{"name": name}
+	if o.Limit > 0 {
+		p["limit"] = o.Limit
+	}
+	var result CountriesResult
+	return &result, c.request(ctx, "/gender/countries", p, &result)
 }
 func applyOptions(p map[string]any, o Options) {
 	if o.Country != "" {
