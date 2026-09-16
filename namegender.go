@@ -15,26 +15,44 @@ type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
 }
+
+// Options configures Name, Email, Username and Bulk. AIFallback falls back to a
+// language model for names not in the database and needs AI consent on the
+// account. BestGuess returns the most likely gender even below the probability
+// threshold.
 type Options struct {
-	Country string `json:"country,omitempty"`
-	AskToAI bool   `json:"askToAI,omitempty"`
-	Force   bool   `json:"forceToGenderize,omitempty"`
-	Type    string `json:"type,omitempty"`
+	Country    string `json:"country,omitempty"`
+	AIFallback bool   `json:"ai_fallback,omitempty"`
+	BestGuess  bool   `json:"best_guess,omitempty"`
+	Type       string `json:"type,omitempty"`
 }
+
+// Result is one lookup. Success is carried by the HTTP status: a non-2xx
+// response is returned as an *APIError, never as a Result.
 type Result struct {
-	Status      bool    `json:"status"`
-	Name        string  `json:"name"`
-	Gender      *string `json:"gender"`
-	Country     *string `json:"country"`
-	Probability int     `json:"probability"`
-	TotalNames  int     `json:"total_names"`
-	Confidence  string  `json:"confidence"`
-	Source      string  `json:"source"`
+	Query            string  `json:"query"`
+	Name             string  `json:"name"`
+	Gender           *string `json:"gender"`
+	Country          *string `json:"country"`
+	Probability      int     `json:"probability"`
+	SampleSize       int     `json:"sample_size"`
+	TookMS           int     `json:"took_ms"`
+	Confidence       string  `json:"confidence"`
+	Source           string  `json:"source"`
+	MatchedAs        *string `json:"matched_as"`
+	CreditsCharged   int     `json:"credits_charged"`
+	CreditsRemaining int     `json:"credits_remaining"`
+	DataVersion      *string `json:"data_version"`
+	RequestID        *string `json:"request_id"`
 }
 type BulkResult struct {
-	Status  bool           `json:"status"`
-	Results []Result       `json:"results"`
-	Summary map[string]any `json:"summary"`
+	Results          []Result       `json:"results"`
+	Summary          map[string]any `json:"summary"`
+	TookMS           int            `json:"took_ms"`
+	CreditsCharged   int            `json:"credits_charged"`
+	CreditsRemaining int            `json:"credits_remaining"`
+	DataVersion      *string        `json:"data_version"`
+	RequestID        *string        `json:"request_id"`
 }
 
 // CountriesOptions configures Countries. Limit caps the number of entries in
@@ -49,11 +67,16 @@ type CountriesOptions struct {
 // AttestedIn is presence with no weight attached. Show Basis.Note next to any
 // percentage.
 type CountriesResult struct {
-	Status        bool                  `json:"status"`
 	Name          string                `json:"name"`
 	Basis         CountriesBasis        `json:"basis"`
 	Registrations []CountryRegistration `json:"registrations"`
 	AttestedIn    []string              `json:"attested_in"`
+
+	TookMS           int     `json:"took_ms"`
+	CreditsCharged   int     `json:"credits_charged"`
+	CreditsRemaining int     `json:"credits_remaining"`
+	DataVersion      *string `json:"data_version"`
+	RequestID        *string `json:"request_id"`
 }
 
 // CountriesBasis states what the numbers in a CountriesResult rest on.
@@ -117,11 +140,11 @@ func applyOptions(p map[string]any, o Options) {
 	if o.Country != "" {
 		p["country"] = o.Country
 	}
-	if o.AskToAI {
-		p["askToAI"] = true
+	if o.AIFallback {
+		p["ai_fallback"] = true
 	}
-	if o.Force {
-		p["forceToGenderize"] = true
+	if o.BestGuess {
+		p["best_guess"] = true
 	}
 	if o.Type != "" {
 		p["type"] = o.Type
