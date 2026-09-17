@@ -40,6 +40,9 @@ type Result struct {
 	Confidence       string  `json:"confidence"`
 	Source           string  `json:"source"`
 	MatchedAs        *string `json:"matched_as"`
+	FirstName        *string `json:"first_name"`
+	MiddleName       *string `json:"middle_name"`
+	LastName         *string `json:"last_name"`
 	CreditsCharged   int     `json:"credits_charged"`
 	CreditsRemaining int     `json:"credits_remaining"`
 	DataVersion      *string `json:"data_version"`

@@ -12,7 +12,7 @@ result, err := client.Name(ctx, "Ayşe", namegender.Options{Country: "TR"})
 ## Options and response
 
 `Options` carries `Country`, `AIFallback` (sent as `ai_fallback`) and
-`BestGuess` (sent as `best_guess`). A `Result` has `Query`, `Name`, `Gender`,
+`BestGuess` (sent as `best_guess`). A `Result` has `Query`, `Name`, `FirstName`, `MiddleName`, `LastName`, `NameType`, `Gender`,
 `Country`, `Probability`, `SampleSize`, `TookMS`, `Source`, `Confidence` and
 `MatchedAs`, plus `CreditsCharged`, `CreditsRemaining`, `DataVersion` and
 `RequestID`. Success is the HTTP status: a non-2xx response is returned as an
