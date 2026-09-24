@@ -62,3 +62,21 @@ func TestOptions(t *testing.T) {
 		t.Fatalf("err=%v", err)
 	}
 }
+func TestNameType(t *testing.T) {
+	c := New("secret")
+	c.BaseURL = "https://example.test"
+	c.HTTPClient = &http.Client{Transport: roundTrip(func(r *http.Request) (*http.Response, error) {
+		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(`{"results":[{"query":"Acme Ltd","gender":null,"first_name":null,"name_type":"organization"},{"query":"Ayşe Yılmaz","gender":"female","first_name":"Ayşe","last_name":"Yılmaz"}]}`)), Header: make(http.Header)}, nil
+	})}
+	r, err := c.Bulk(context.Background(), []string{"Acme Ltd", "Ayşe Yılmaz"}, Options{})
+	if err != nil || len(r.Results) != 2 {
+		t.Fatalf("result=%+v err=%v", r, err)
+	}
+	org, person := r.Results[0], r.Results[1]
+	if org.NameType == nil || *org.NameType != "organization" || org.FirstName != nil {
+		t.Fatalf("org=%+v", org)
+	}
+	if person.NameType != nil || person.FirstName == nil || *person.FirstName != "Ayşe" || person.LastName == nil || *person.LastName != "Yılmaz" || person.MiddleName != nil {
+		t.Fatalf("person=%+v", person)
+	}
+}

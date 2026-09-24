@@ -43,6 +43,7 @@ type Result struct {
 	FirstName        *string `json:"first_name"`
 	MiddleName       *string `json:"middle_name"`
 	LastName         *string `json:"last_name"`
+	NameType         *string `json:"name_type"` // personal, organization or role
 	CreditsCharged   int     `json:"credits_charged"`
 	CreditsRemaining int     `json:"credits_remaining"`
 	DataVersion      *string `json:"data_version"`
