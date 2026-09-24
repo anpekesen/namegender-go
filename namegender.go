@@ -154,35 +154,55 @@ func applyOptions(p map[string]any, o Options) {
 	}
 }
 func (c *Client) request(ctx context.Context, path string, payload any, target any) error {
-	if c.APIKey == "" {
-		return fmt.Errorf("namegender: API key is required")
-	}
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(c.BaseURL, "/")+path, bytes.NewReader(body))
+	raw, err := c.send(ctx, http.MethodPost, path, "application/json", body, nil)
 	if err != nil {
 		return err
 	}
+	return json.Unmarshal(raw, target)
+}
+
+// send makes one request and returns the response body. A non-2xx response is
+// an *APIError. body may be nil; it is sent as given, so the caller can send
+// the same bytes again on a retry.
+func (c *Client) send(ctx context.Context, method, path, contentType string, body []byte, header http.Header) ([]byte, error) {
+	if c.APIKey == "" {
+		return nil, fmt.Errorf("namegender: API key is required")
+	}
+	var reader io.Reader
+	if body != nil {
+		reader = bytes.NewReader(body)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, strings.TrimRight(c.BaseURL, "/")+path, reader)
+	if err != nil {
+		return nil, err
+	}
+	for key, values := range header {
+		req.Header[key] = values
+	}
 	req.Header.Set("Authorization", "Bearer "+c.APIKey)
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", "application/json")
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
 	client := c.HTTPClient
 	if client == nil {
 		client = http.DefaultClient
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return &APIError{Status: resp.StatusCode, Body: raw}
+		return nil, &APIError{Status: resp.StatusCode, Body: raw}
 	}
-	return json.Unmarshal(raw, target)
+	return raw, nil
 }
