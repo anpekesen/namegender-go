@@ -26,6 +26,34 @@ A `Result` has `Query`, `Name`, `FirstName`, `MiddleName`, `LastName`, `NameType
 `*APIError` holding the status and the raw error body
 (`{"error", "message", "request_id", "docs"}`).
 
+## Salutation
+
+The opening line of a letter or email, in the recipient's language. One credit
+per name.
+
+```go
+r, err := client.Salutation(ctx, "Dr. Anna Müller", namegender.SalutationOptions{Language: "de"})
+fmt.Println(r.Salutation.Formal) // Sehr geehrte Frau Dr. Müller,
+
+r, err = client.Salutation(ctx, "Ahmet Yılmaz", namegender.SalutationOptions{Language: "tr"})
+fmt.Println(r.Salutation.Formal) // Sayın Ahmet Bey,
+
+// First and last name stored separately: leave the name empty.
+r, err = client.Salutation(ctx, "", namegender.SalutationOptions{FirstName: "Anna", LastName: "Müller", Language: "de"})
+
+bulk, err := client.SalutationBulk(ctx, []string{"Anna Müller", "Acme GmbH"}, namegender.SalutationOptions{Language: "de"})
+// bulk.Results is in input order; bulk.Summary counts the forms.
+```
+
+`SalutationOptions` carries `Language`, `Country`, `Locale`, `IP`, `Gender`
+(`"male"`, `"female"` or `"neutral"`, overrides the lookup), `MinProbability`
+(50-100, default 90), `Title` (`"Dr."`) and, for `Salutation` only,
+`FirstName`/`LastName`. When the gender is not certain the salutation uses the
+neutral form: `Form` (`gendered`, `neutral`, `organization`) and `Reason` say
+why. `Salutation.Neutral` is always the gender-free line, and `Parts` holds the
+pieces of the formal line. `BestGuess` does not apply here. An unsupported
+language is a 422 `*APIError`.
+
 ## Country distribution
 
 Which countries a name is recorded in. This is not a country-of-origin or
