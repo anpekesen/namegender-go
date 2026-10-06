@@ -11,9 +11,16 @@ result, err := client.Name(ctx, "Ayşe", namegender.Options{Country: "TR"})
 
 ## Options and response
 
-`Options` carries `Country`, `AIFallback` (sent as `ai_fallback`) and
-`BestGuess` (sent as `best_guess`). A `Result` has `Query`, `Name`, `FirstName`, `MiddleName`, `LastName`, `NameType`, `Gender`,
-`Country`, `Probability`, `SampleSize`, `TookMS`, `Source`, `Confidence` and
+`Options` carries `Country`, `Locale`, `IP`, `AIFallback` (sent as
+`ai_fallback`) and `BestGuess` (sent as `best_guess`). When you have no
+country, pass the user's language tag as `Locale` (`"it-IT"`, `"pt_BR"`) or
+their address as `IP` (not stored by the API): `Country` wins over the
+locale's region, which wins over the IP's country, and a tag without a region
+(`"en"`) sets no country. `Countries` and file jobs take neither.
+
+A `Result` has `Query`, `Name`, `FirstName`, `MiddleName`, `LastName`, `NameType`, `Gender`,
+`Country`, `CountrySource` (`"country"`, `"locale"`, `"ip"` or nil, also on
+`BulkResult`), `Probability`, `SampleSize`, `TookMS`, `Source`, `Confidence` and
 `MatchedAs`, plus `CreditsCharged`, `CreditsRemaining`, `DataVersion` and
 `RequestID`. Success is the HTTP status: a non-2xx response is returned as an
 `*APIError` holding the status and the raw error body

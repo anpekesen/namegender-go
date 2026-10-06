@@ -80,3 +80,36 @@ func TestNameType(t *testing.T) {
 		t.Fatalf("person=%+v", person)
 	}
 }
+func TestCountryHints(t *testing.T) {
+	var p map[string]any
+	c := New("secret")
+	c.BaseURL = "https://example.test"
+	c.HTTPClient = &http.Client{Transport: roundTrip(func(r *http.Request) (*http.Response, error) {
+		p = nil
+		if err := json.NewDecoder(r.Body).Decode(&p); err != nil {
+			t.Fatal(err)
+		}
+		body := `{"query":"Andrea","gender":"male","country":"IT","country_source":"locale"}`
+		if r.URL.Path == "/gender/bulk" {
+			body = `{"country_source":null,"results":[{"query":"Andrea","country":null,"country_source":null}]}`
+		}
+		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(body)), Header: make(http.Header)}, nil
+	})}
+	r, err := c.Name(context.Background(), "Andrea", Options{Locale: "it-IT", IP: "203.0.113.7"})
+	if err != nil || p["locale"] != "it-IT" || p["ip"] != "203.0.113.7" || len(p) != 3 {
+		t.Fatalf("payload=%v err=%v", p, err)
+	}
+	if r.CountrySource == nil || *r.CountrySource != "locale" {
+		t.Fatalf("result=%+v", r)
+	}
+	b, err := c.Bulk(context.Background(), []string{"Andrea"}, Options{})
+	if err != nil || len(p) != 1 {
+		t.Fatalf("payload=%v err=%v", p, err)
+	}
+	if b.CountrySource != nil || len(b.Results) != 1 || b.Results[0].CountrySource != nil {
+		t.Fatalf("result=%+v", b)
+	}
+	if _, err := c.Bulk(context.Background(), []string{"Andrea"}, Options{Locale: "pt_BR"}); err != nil || p["locale"] != "pt_BR" || p["ip"] != nil {
+		t.Fatalf("payload=%v err=%v", p, err)
+	}
+}

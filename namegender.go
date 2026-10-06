@@ -20,8 +20,16 @@ type Client struct {
 // language model for names not in the database and needs AI consent on the
 // account. BestGuess returns the most likely gender even below the probability
 // threshold.
+//
+// Locale (a language tag such as "it-IT" or "pt_BR") and IP (the end user's
+// address, not stored by the API) supply the country when Country is empty:
+// Country wins over the locale's region, which wins over the IP's country. A
+// tag without a region ("en") sets no country. Result.CountrySource says which
+// one was used.
 type Options struct {
 	Country    string `json:"country,omitempty"`
+	Locale     string `json:"locale,omitempty"`
+	IP         string `json:"ip,omitempty"`
 	AIFallback bool   `json:"ai_fallback,omitempty"`
 	BestGuess  bool   `json:"best_guess,omitempty"`
 	Type       string `json:"type,omitempty"`
@@ -34,6 +42,7 @@ type Result struct {
 	Name             string  `json:"name"`
 	Gender           *string `json:"gender"`
 	Country          *string `json:"country"`
+	CountrySource    *string `json:"country_source"` // country, locale, ip or nil
 	Probability      int     `json:"probability"`
 	SampleSize       int     `json:"sample_size"`
 	TookMS           int     `json:"took_ms"`
@@ -52,6 +61,7 @@ type Result struct {
 type BulkResult struct {
 	Results          []Result       `json:"results"`
 	Summary          map[string]any `json:"summary"`
+	CountrySource    *string        `json:"country_source"` // country, locale, ip or nil
 	TookMS           int            `json:"took_ms"`
 	CreditsCharged   int            `json:"credits_charged"`
 	CreditsRemaining int            `json:"credits_remaining"`
@@ -143,6 +153,12 @@ func (c *Client) Countries(ctx context.Context, name string, o CountriesOptions)
 func applyOptions(p map[string]any, o Options) {
 	if o.Country != "" {
 		p["country"] = o.Country
+	}
+	if o.Locale != "" {
+		p["locale"] = o.Locale
+	}
+	if o.IP != "" {
+		p["ip"] = o.IP
 	}
 	if o.AIFallback {
 		p["ai_fallback"] = true
