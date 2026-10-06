@@ -54,6 +54,30 @@ why. `Salutation.Neutral` is always the gender-free line, and `Parts` holds the
 pieces of the formal line. `BestGuess` does not apply here. An unsupported
 language is a 422 `*APIError`.
 
+## Name check
+
+Whether a name typed into a form looks like a real person's name, with the
+reasons. One credit per name.
+
+```go
+r, err := client.NameCheck(ctx, "asdf qwerty", namegender.NameCheckOptions{})
+fmt.Println(r.Assessment, r.Score) // implausible 0
+
+r, err = client.NameCheck(ctx, "", namegender.NameCheckOptions{FirstName: "Jennifer", LastName: "Null"})
+fmt.Println(r.Assessment) // plausible
+
+bulk, err := client.NameCheckBulk(ctx, []string{"Jennifer Null", "asdf qwerty"}, namegender.NameCheckOptions{})
+// bulk.Results is in input order; bulk.Summary counts the assessments.
+```
+
+`Assessment` is `plausible`, `suspicious` or `implausible`, `Score` is 0-100,
+and `Signals` lists the reasons (`Code`, `Severity`, `Part`, `Value`).
+`NameCheckOptions` carries `Country`, `Locale`, `IP` and, for `NameCheck`
+only, `FirstName`/`LastName`. It never calls a name fake: use it to flag
+records for a closer look, not to reject people automatically. Surnames are
+judged by their shape only; `Evidence` says what the database knows about the
+first name.
+
 ## Country distribution
 
 Which countries a name is recorded in. This is not a country-of-origin or
