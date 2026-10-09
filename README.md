@@ -78,6 +78,29 @@ records for a closer look, not to reject people automatically. Surnames are
 judged by their shape only; `Evidence` says what the database knows about the
 first name.
 
+## Age from name
+
+How old the people who carry a first name usually are, from birth records.
+One credit per name.
+
+```go
+r, err := client.Age(ctx, "Brittany", namegender.AgeOptions{})
+fmt.Println(*r.Age, r.AgeRange.Low, r.AgeRange.High) // 36 32 38
+
+bulk, err := client.AgeBulk(ctx, []string{"Brittany", "Camille"}, namegender.AgeOptions{Country: "FR"})
+// bulk.Results is in input order.
+```
+
+`Age` is the median age, `AgeRange` the middle half and `AgeRange80` the
+middle 80 percent; `BirthYear`, `SampleSize` and `Source` say what it rests on.
+It covers the US, France and Norway. For other countries `Age` is nil, `Reason`
+is `country_not_covered` and no credit is charged; `not_found` and
+`insufficient_data` are the other reasons. Without a country hint US data is
+used (`CountrySource` is `default`). `AgeOptions` carries `Gender` (`male` or
+`female`, which narrows the estimate to one gender's records), `Country`,
+`Locale` and `IP`. The answer describes a group, not a person: never use it
+for decisions about an individual.
+
 ## Country distribution
 
 Which countries a name is recorded in. This is not a country-of-origin or
